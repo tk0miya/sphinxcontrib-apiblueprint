@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import unittest
 from time import time
 from sphinx_testing import with_app
@@ -83,3 +84,22 @@ class TestCase(unittest.TestCase):
         app.build()
         print(status.getvalue(), warnings.getvalue())
         self.assertIn('ERROR: Fail to read API Blueprint: [Errno 2] No such file or directory:', warnings.getvalue())
+
+    @with_app(srcdir='tests/template')
+    def test_markdown(self, app, status, warnings):
+        app.build()
+        print(status.getvalue(), warnings.getvalue())
+        actual = (app.outdir / 'index.html').read_text(encoding='utf-8')
+        print actual
+        expected = (u'<div class="section" id="get-message">\n'
+                    u'<h2>GET /message<a class="headerlink" href="#get-message" '
+                    u'title="Permalink to this headline">¶</a></h2>\n'
+                    u'<ul>\n'
+                    u'<li><p class="first">Response 200 (text/plain)</p>\n'
+                    u'<pre class="literal-block">\n'
+                    u'  Hello World!\n'
+                    u'</pre>\n'
+                    u'</li>\n'
+                    u'</ul>\n'
+                    u'</div>\n')
+        self.assertIn(expected, actual)

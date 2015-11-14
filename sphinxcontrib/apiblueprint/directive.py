@@ -2,8 +2,10 @@
 import io
 import os
 import re
-from docutils import nodes
+from docutils.core import publish_doctree
 from docutils.parsers.rst import Directive
+from recommonmark.parser import CommonMarkParser
+from sphinxcontrib.apiblueprint.translator import APIBlueprintTranslator
 
 
 def relfn2path(env, relpath, filename):
@@ -26,7 +28,11 @@ class ApiBlueprintDirective(Directive):
         relfn, abspath = relfn2path(self.env, docpath, self.arguments[0])
 
         content = self.read_markdown(relfn, abspath, [])
-        return [nodes.literal_block(text=content)]
+        doctree = publish_doctree(content, parser=CommonMarkParser())
+        translator = APIBlueprintTranslator(doctree)
+        doctree.walkabout(translator)
+
+        return doctree[:]
 
     def read_markdown(self, relfn, abspath, included):
         if abspath in included:
