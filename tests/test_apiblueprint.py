@@ -47,6 +47,27 @@ class TestCase(unittest.TestCase):
         self.assertIn('0 added, 1 changed, 0 removed', status.getvalue())
 
     @with_app(srcdir='tests/template', copy_srcdir_to_tmpdir=True)
+    def test_detect_infinit_include_loop(self, app, status, warnings):
+        # prepare
+        (app.srcdir / 'api.md').write_text(
+            "This is *Markdown* document\n"
+            "<!-- include(subdir/subdoc.md) -->"
+        )
+        (app.srcdir / 'subdir').makedirs()
+        (app.srcdir / 'subdir' / 'subdoc.md').write_text(
+            "This is *sub* document\n"
+            "<!-- include(../subsubdoc.md) -->"
+        )
+        (app.srcdir / 'subsubdoc.md').write_text(
+            "This is *subsub* document\n"
+            "<!-- include(api.md) -->"
+        )
+
+        app.build()
+        print(status.getvalue(), warnings.getvalue())
+        self.assertIn('ERROR: Infinit include loop has detected. check your API definitions.', warnings.getvalue())
+
+    @with_app(srcdir='tests/template', copy_srcdir_to_tmpdir=True)
     def test_target_not_found(self, app, status, warnings):
         (app.srcdir / 'api.md').unlink()
         app.build()

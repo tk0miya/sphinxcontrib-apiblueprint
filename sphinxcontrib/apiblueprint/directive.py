@@ -25,10 +25,13 @@ class ApiBlueprintDirective(Directive):
         docpath = self.env.doc2path(self.env.docname, base=None)
         relfn, abspath = relfn2path(self.env, docpath, self.arguments[0])
 
-        content = self.read_markdown(relfn, abspath)
+        content = self.read_markdown(relfn, abspath, [])
         return [nodes.literal_block(text=content)]
 
-    def read_markdown(self, relfn, abspath):
+    def read_markdown(self, relfn, abspath, included):
+        if abspath in included:
+            raise self.error('Infinit include loop has detected. check your API definitions.')
+
         try:
             with io.open(abspath, 'r', encoding='utf-8-sig') as fd:
                 content = fd.read()
@@ -44,7 +47,7 @@ class ApiBlueprintDirective(Directive):
 
             filename = matched.group(1)
             relfn_included, abspath_included = relfn2path(self.env, relfn, filename)
-            replace = self.read_markdown(relfn_included, abspath_included)
+            replace = self.read_markdown(relfn_included, abspath_included, included + [abspath])
             content = include_stmt.sub(replace, content)
 
         return content
