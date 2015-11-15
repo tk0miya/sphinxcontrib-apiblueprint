@@ -152,3 +152,33 @@ class TestCase(unittest.TestCase):
         self.assertEqual(blueprint[1][2][0].astext(), 'Body:')
         self.assertEqual(blueprint[1][2][1].astext(), 'Hello World!')
         self.assertIsInstance(blueprint[1][2][1], nodes.literal_block)
+
+    @with_app(srcdir='tests/template', copy_srcdir_to_tmpdir=True)
+    def test_resource_group(self, app, status, warnings):
+        """
+        # Group Blog Posts
+        ## GET /posts/{id}
+        + Response 200 (text/plain)
+
+            Hello World!
+
+        ## POST /posts
+        + Parameters
+            + message (string, required)
+
+        + Response 200 (text/plain)
+
+            OK
+        """
+        app.build()
+        print(status.getvalue(), warnings.getvalue())
+
+        blueprint = app.env.get_doctree('index')[0][1]
+        self.assertEqual(blueprint[0].astext(), 'Blog Posts')
+        self.assertEqual(blueprint[1][0].astext(), 'GET /posts/{id}')
+        self.assertEqual(blueprint[1][1][2][1].astext(), 'Hello World!')
+        self.assertEqual(blueprint[2][0].astext(), 'POST /posts')
+        self.assertEqual(blueprint[2][1][0].astext(), 'Parameters:')
+        self.assertEqual(blueprint[2][1][1].astext(), 'message (string, required)')
+        self.assertEqual(blueprint[2][2][0].astext(), 'Response 200')
+        self.assertEqual(blueprint[2][2][2][1].astext(), 'OK')

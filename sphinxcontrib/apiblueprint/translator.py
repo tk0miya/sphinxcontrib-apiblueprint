@@ -48,8 +48,15 @@ class APIBlueprintPreTranslator(BaseNodeVisitor):
 
         raise nodes.SkipNode
 
+    def visit_ResourceGroup(self, node):
+        node.parse_title()
+        node.remove(node[0])
+
     def visit_Resource(self, node):
         node.parse_title()
+
+    def visit_Parameters(self, node):
+        node.remove(node[0])
 
     def visit_Response(self, node):
         node.parse_title()
@@ -64,6 +71,12 @@ class APIBlueprintPreTranslator(BaseNodeVisitor):
 
 
 class APIBlueprintPostTranslator(BaseNodeVisitor):
+    def depart_ResourceGroup(self, node):
+        title = nodes.title(text=node['identifier'])
+        node.insert(0, title)
+
+        replace_nodeclass(node, nodes.section)
+
     def depart_Resource(self, node):
         replace_nodeclass(node, nodes.section)
 
@@ -75,6 +88,12 @@ class APIBlueprintPostTranslator(BaseNodeVisitor):
         title += nodes.strong(text='Response')
         title += nodes.Text(' ')
         title += nodes.literal(text=node['status_code'])
+        node.insert(0, title)
+
+        replace_nodeclass(node, nodes.container)
+
+    def depart_Parameters(self, node):
+        title = nodes.paragraph(text='Parameters:')
         node.insert(0, title)
 
         replace_nodeclass(node, nodes.container)

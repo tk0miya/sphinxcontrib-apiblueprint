@@ -12,7 +12,9 @@ class Section(nodes.Element):
 
 
 class ResourceGroup(Section):
-    pass
+    def parse_title(self):
+        _, identifier = self[0].astext().split(None, 1)
+        self['identifier'] = identifier
 
 
 class Resource(Section):
@@ -63,12 +65,12 @@ class Request(Section):
 
 class Response(Section):
     def parse_title(self):
-        matched = re.search('^Response\s+(\d+)\s+\((.+)\)$', self[0].astext())
+        matched = re.search('^Response\s+(\d+)(?:\s+\((.+)\))?$', self[0].astext())
         if not matched:
             raise ParseError('Unknown response type: %s' % self[0].astext())
 
         self['status_code'] = int(matched.group(1))
-        self['content_type'] = matched.group(2).strip()
+        self['content_type'] = (matched.group(2) or '').strip()
 
     def restruct(self):
         from sphinxcontrib.apiblueprint.utils import get_children, transpose_subnodes
