@@ -3,6 +3,10 @@ import re
 from sphinxcontrib.apiblueprint import addnodes
 
 
+def get_children(node, cls):
+    return [subnode for subnode in node if isinstance(subnode, cls)]
+
+
 def transpose_subnodes(old, new):
     for subnode in old[:]:
         old.remove(subnode)

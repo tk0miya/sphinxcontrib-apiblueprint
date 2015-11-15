@@ -66,28 +66,35 @@ class APIBlueprintPostTranslator(BaseNodeVisitor):
         transpose_subnodes(node, section)
         node.replace_self(section)
 
+    def visit_Response(self, node):
+        node.restruct()
+
     def depart_Response(self, node):
+        title = nodes.paragraph()
+        title += nodes.strong(text='Response')
+        title += nodes.Text(' ')
+        title += nodes.literal(text=node['status_code'])
+        node.insert(0, title)
+
         response = nodes.container()
-        response += nodes.paragraph()
-        response[0] += nodes.strong(text='Response')
-        response[0] += nodes.Text(' ')
-        response[0] += nodes.literal(text=node['status_code'])
+        transpose_subnodes(node, response)
+        node.replace_self(response)
 
-        if node['content_type']:
-            headers = nodes.container()
-            headers += nodes.paragraph(text='Headers:')
-            headers += nodes.literal_block(text="Content-Type: %s" %
-                                                node['content_type'])
-
-            response += headers
+    def depart_Body(self, node):
+        title = nodes.paragraph(text='Body:')
+        node.insert(0, title)
 
         body = nodes.container()
-        body += nodes.paragraph(text='Body:')
-        body += node[:]
+        transpose_subnodes(node, body)
+        node.replace_self(body)
 
-        response += body
+    def depart_Headers(self, node):
+        title = nodes.paragraph(text='Headers:')
+        node.insert(0, title)
 
-        node.replace_self(response)
+        headers = nodes.container()
+        transpose_subnodes(node, headers)
+        node.replace_self(headers)
 
 
 def translate(doctree):

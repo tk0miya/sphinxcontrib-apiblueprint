@@ -70,6 +70,26 @@ class Response(Section):
         self['status_code'] = int(matched.group(1))
         self['content_type'] = matched.group(2).strip()
 
+    def restruct(self):
+        from sphinxcontrib.apiblueprint.utils import get_children, transpose_subnodes
+
+        if not get_children(self, Section):
+            body = Body()
+            transpose_subnodes(self, body)
+            self += body
+
+        headers = get_children(self, Headers)
+        if not headers:
+            header = Headers()
+            header.add_header('Content-Type: %s' % self['content_type'])
+
+            body = get_children(self, Body)[0]
+            pos = self.index(body)
+            self.insert(pos, header)
+        else:
+            for header in headers:
+                header.add_header('Content-Type: %s' % self['content_type'])
+
 
 class Parameters(Section):
     pass
@@ -80,7 +100,15 @@ class Attributes(Section):
 
 
 class Headers(Section):
-    pass
+    def add_header(self, header):
+        from sphinxcontrib.apiblueprint.utils import get_children
+
+        if len(self) == 0:
+            self += nodes.literal_block(text=header)
+        else:
+            literal = get_children(self, nodes.literal_block)[0]
+            new_header = header + "\n" + literal.astext()
+            literal[0].replace_self(nodes.Text(new_header))
 
 
 class Body(Section):
