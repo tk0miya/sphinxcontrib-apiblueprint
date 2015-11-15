@@ -2,7 +2,26 @@
 import unittest
 from time import time
 from docutils import nodes
-from sphinx_testing import with_app
+from functools import wraps
+from textwrap import dedent
+
+
+# export docstring to markdown file automatically
+def with_app(**sphinxkwargs):
+    def decorator(func):
+        from sphinx_testing import with_app
+
+        @wraps(func)
+        @with_app(**sphinxkwargs)
+        def decorated(self, app, status, warnings):
+            if func.__doc__:
+                (app.srcdir / 'api.md').write_text(dedent(func.__doc__))
+
+            func(self, app, status, warnings)
+
+        return decorated
+
+    return decorator
 
 
 class TestCase(unittest.TestCase):
@@ -86,8 +105,14 @@ class TestCase(unittest.TestCase):
         print(status.getvalue(), warnings.getvalue())
         self.assertIn('ERROR: Fail to read API Blueprint: [Errno 2] No such file or directory:', warnings.getvalue())
 
-    @with_app(srcdir='tests/template')
-    def test_markdown(self, app, status, warnings):
+    @with_app(srcdir='tests/template', copy_srcdir_to_tmpdir=True)
+    def test_simple_apiblueprint(self, app, status, warnings):
+        """
+        # GET /message
+        + Response 200 (text/plain)
+
+                Hello World!
+        """
         app.build()
         print(status.getvalue(), warnings.getvalue())
 
