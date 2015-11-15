@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from docutils import nodes
-from sphinxcontrib.apiblueprint import addnodes
 from sphinxcontrib.apiblueprint.utils import detect_section_type, transpose_subnodes
 
 
@@ -79,24 +78,20 @@ class APIBlueprintPreTranslator(nodes.NodeVisitor):
         pass
 
 
-class APIBlueprintPostTranslator(object):
-    def __init__(self, document):
-        self.document = document
+class APIBlueprintPostTranslator(nodes.NodeVisitor):
+    def unknown_visit(self, node):
+        pass
 
-    def translate(self):
-        for node in self.document.traverse(addnodes.Resource):
-            self.visit_Resource(node)
+    def unknown_departure(self, node):
+        pass
 
-    def visit_Resource(self, node):
+    def depart_Resource(self, node):
         section = nodes.section()
         section['ids'].append(nodes.make_id(node[0].astext()))
         transpose_subnodes(node, section)
         node.replace_self(section)
 
-        for subnode in section.traverse(addnodes.Response):
-            self.visit_Response(subnode)
-
-    def visit_Response(self, node):
+    def depart_Response(self, node):
         response = nodes.container()
         response += nodes.paragraph()
         response[0] += nodes.strong(text='Response')
@@ -124,5 +119,5 @@ def translate(doctree):
     pre_translator = APIBlueprintPreTranslator(doctree)
     doctree.walkabout(pre_translator)
     post_translator = APIBlueprintPostTranslator(doctree)
-    post_translator.translate()
+    doctree.walkabout(post_translator)
     return doctree
