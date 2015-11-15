@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import unittest
 from time import time
+from docutils import nodes
 from sphinx_testing import with_app
 
 
@@ -89,26 +90,13 @@ class TestCase(unittest.TestCase):
     def test_markdown(self, app, status, warnings):
         app.build()
         print(status.getvalue(), warnings.getvalue())
-        actual = (app.outdir / 'index.html').read_text(encoding='utf-8')
-        print actual
-        expected = (u'<div class="section" id="get-message">\n'
-                    u'<h2>GET /message<a class="headerlink" href="#get-message" '
-                    u'title="Permalink to this headline">¶</a></h2>\n'
-                    u'<div class="container">\n'
-                    u'<p><strong>Response</strong> '
-                    u'<code class="docutils literal"><span class="pre">200</span></code></p>\n'
-                    u'<div class="container">\n'
-                    u'<p>Headers:</p>\n'
-                    u'<pre class="literal-block">\n'
-                    u'Content-Type: text/plain\n'
-                    u'</pre>\n'
-                    u'</div>\n'
-                    u'<div class="container">\n'
-                    u'<p>Body:</p>\n'
-                    u'<pre class="literal-block">\n'
-                    u'  Hello World!\n'
-                    u'</pre>\n'
-                    u'</div>\n'
-                    u'</div>\n'
-                    u'</div>\n')
-        self.assertIn(expected, actual)
+
+        blueprint = app.env.get_doctree('index')[0][1]
+        self.assertEqual(blueprint[0].astext(), 'GET /message')
+        self.assertEqual(blueprint[1][0].astext(), 'Response 200')
+        self.assertEqual(blueprint[1][1][0].astext(), 'Headers:')
+        self.assertEqual(blueprint[1][1][1].astext(), 'Content-Type: text/plain')
+        self.assertIsInstance(blueprint[1][1][1], nodes.literal_block)
+        self.assertEqual(blueprint[1][2][0].astext(), 'Body:')
+        self.assertEqual(blueprint[1][2][1].astext(), '  Hello World!')
+        self.assertIsInstance(blueprint[1][2][1], nodes.literal_block)
