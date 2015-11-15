@@ -3,19 +3,18 @@ from docutils import nodes
 from sphinxcontrib.apiblueprint.utils import detect_section_type, transpose_subnodes
 
 
-def skipper(self, node):
-    raise nodes.SkipNode
-
-
-class APIBlueprintPreTranslator(nodes.NodeVisitor):
-    # skipped nodes
-    visit_title = skipper
-    visit_paragraph = skipper
-    visit_literal_block = skipper
-
+class BaseNodeVisitor(nodes.NodeVisitor):
     def warn(self, *args, **kwargs):
         self.document.reporter.warn(*args, **kwargs)
 
+    def unknown_visit(self, node):
+        pass
+
+    def unknown_departure(self, node):
+        pass
+
+
+class APIBlueprintPreTranslator(BaseNodeVisitor):
     def visit_document(self, node):
         if isinstance(node[0], nodes.title):
             # insert section node if doc has only ONE section
@@ -23,9 +22,6 @@ class APIBlueprintPreTranslator(nodes.NodeVisitor):
             section['ids'].append(nodes.make_id(node[0].astext()))
             transpose_subnodes(node, section)
             node += section
-
-    def depart_document(self, node):
-        pass
 
     def visit_section(self, node):
         section_type = detect_section_type(node)
@@ -35,9 +31,6 @@ class APIBlueprintPreTranslator(nodes.NodeVisitor):
             node.replace_self(newnode)
 
             newnode.walkabout(self)
-
-    def depart_section(self, node):
-        pass
 
     def visit_bullet_list(self, node):
         parent = node.parent
@@ -58,33 +51,15 @@ class APIBlueprintPreTranslator(nodes.NodeVisitor):
 
         raise nodes.SkipNode
 
-    def visit_list_item(self, node):
-        pass
-
-    def depart_list_item(self, node):
-        pass
-
     def visit_Resource(self, node):
         node.parse_title()
-
-    def depart_Resource(self, node):
-        pass
 
     def visit_Response(self, node):
         node.parse_title()
         node.remove(node[0])
 
-    def depart_Response(self, node):
-        pass
 
-
-class APIBlueprintPostTranslator(nodes.NodeVisitor):
-    def unknown_visit(self, node):
-        pass
-
-    def unknown_departure(self, node):
-        pass
-
+class APIBlueprintPostTranslator(BaseNodeVisitor):
     def depart_Resource(self, node):
         section = nodes.section()
         section['ids'].append(nodes.make_id(node[0].astext()))
