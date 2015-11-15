@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from docutils import nodes
-from sphinxcontrib.apiblueprint.utils import detect_section_type, transpose_subnodes
+from sphinxcontrib.apiblueprint.utils import detect_section_type, replace_nodeclass, transpose_subnodes
 
 
 class BaseNodeVisitor(nodes.NodeVisitor):
@@ -26,10 +26,7 @@ class APIBlueprintPreTranslator(BaseNodeVisitor):
     def visit_section(self, node):
         section_type = detect_section_type(node)
         if section_type:
-            newnode = section_type()
-            transpose_subnodes(node, newnode)
-            node.replace_self(newnode)
-
+            newnode = replace_nodeclass(node, section_type)
             newnode.walkabout(self)
 
     def visit_bullet_list(self, node):
@@ -61,10 +58,7 @@ class APIBlueprintPreTranslator(BaseNodeVisitor):
 
 class APIBlueprintPostTranslator(BaseNodeVisitor):
     def depart_Resource(self, node):
-        section = nodes.section()
-        section['ids'].append(nodes.make_id(node[0].astext()))
-        transpose_subnodes(node, section)
-        node.replace_self(section)
+        replace_nodeclass(node, nodes.section)
 
     def visit_Response(self, node):
         node.restruct()
@@ -76,25 +70,19 @@ class APIBlueprintPostTranslator(BaseNodeVisitor):
         title += nodes.literal(text=node['status_code'])
         node.insert(0, title)
 
-        response = nodes.container()
-        transpose_subnodes(node, response)
-        node.replace_self(response)
+        replace_nodeclass(node, nodes.container)
 
     def depart_Body(self, node):
         title = nodes.paragraph(text='Body:')
         node.insert(0, title)
 
-        body = nodes.container()
-        transpose_subnodes(node, body)
-        node.replace_self(body)
+        replace_nodeclass(node, nodes.container)
 
     def depart_Headers(self, node):
         title = nodes.paragraph(text='Headers:')
         node.insert(0, title)
 
-        headers = nodes.container()
-        transpose_subnodes(node, headers)
-        node.replace_self(headers)
+        replace_nodeclass(node, nodes.container)
 
 
 def translate(doctree):

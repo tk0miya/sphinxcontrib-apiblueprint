@@ -7,6 +7,14 @@ def get_children(node, cls):
     return [subnode for subnode in node if isinstance(subnode, cls)]
 
 
+def replace_nodeclass(node, cls):
+    newnode = cls()
+    transpose_subnodes(node, newnode)
+    node.replace_self(newnode)
+
+    return newnode
+
+
 def transpose_subnodes(old, new):
     for subnode in old[:]:
         old.remove(subnode)
