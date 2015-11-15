@@ -55,6 +55,13 @@ class APIBlueprintPreTranslator(BaseNodeVisitor):
         node.parse_title()
         node.remove(node[0])
 
+    def visit_Headers(self, node):
+        node.remove(node[0])
+
+    def visit_Body(self, node):
+        node.remove(node[0])
+        node.dedent()
+
 
 class APIBlueprintPostTranslator(BaseNodeVisitor):
     def depart_Resource(self, node):

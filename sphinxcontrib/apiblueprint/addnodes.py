@@ -77,6 +77,7 @@ class Response(Section):
             body = Body()
             transpose_subnodes(self, body)
             self += body
+            body.dedent()
 
         headers = get_children(self, Headers)
         if not headers:
@@ -108,11 +109,17 @@ class Headers(Section):
         else:
             literal = get_children(self, nodes.literal_block)[0]
             new_header = header + "\n" + literal.astext()
-            literal[0].replace_self(nodes.Text(new_header))
+            literal.replace_self(nodes.literal_block(text=new_header))
 
 
 class Body(Section):
-    pass
+    def dedent(self):
+        from textwrap import dedent
+        from sphinxcontrib.apiblueprint.utils import get_children
+
+        for subnode in get_children(self, (nodes.literal_block, nodes.paragraph)):
+            content = dedent(subnode.astext())
+            subnode.replace_self(nodes.literal_block(text=content))
 
 
 class DataStructures(Section):

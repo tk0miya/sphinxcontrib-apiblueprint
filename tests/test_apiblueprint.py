@@ -123,5 +123,32 @@ class TestCase(unittest.TestCase):
         self.assertEqual(blueprint[1][1][1].astext(), 'Content-Type: text/plain')
         self.assertIsInstance(blueprint[1][1][1], nodes.literal_block)
         self.assertEqual(blueprint[1][2][0].astext(), 'Body:')
-        self.assertEqual(blueprint[1][2][1].astext(), '  Hello World!')
+        self.assertEqual(blueprint[1][2][1].astext(), 'Hello World!')
+        self.assertIsInstance(blueprint[1][2][1], nodes.literal_block)
+
+    @with_app(srcdir='tests/template', copy_srcdir_to_tmpdir=True)
+    def test_response_header_section(self, app, status, warnings):
+        """
+        # GET /message
+        + Response 200 (text/plain)
+            + Headers
+
+                  Accept-Language: ja
+
+            + Body
+
+                  Hello World!
+        """
+        app.build()
+        print(status.getvalue(), warnings.getvalue())
+
+        blueprint = app.env.get_doctree('index')[0][1]
+        self.assertEqual(blueprint[0].astext(), 'GET /message')
+        self.assertEqual(blueprint[1][0].astext(), 'Response 200')
+        self.assertEqual(blueprint[1][1][0].astext(), 'Headers:')
+        self.assertEqual(blueprint[1][1][1].astext(), ('Content-Type: text/plain\n'
+                                                       'Accept-Language: ja'))
+        self.assertIsInstance(blueprint[1][1][1], nodes.literal_block)
+        self.assertEqual(blueprint[1][2][0].astext(), 'Body:')
+        self.assertEqual(blueprint[1][2][1].astext(), 'Hello World!')
         self.assertIsInstance(blueprint[1][2][1], nodes.literal_block)
