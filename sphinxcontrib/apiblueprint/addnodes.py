@@ -23,6 +23,7 @@ class Resource(Section):
         self['uri'] = ''
         self['http_method'] = ''
         self['identifier'] = ''
+        self['has_action'] = False
 
         title = self[0].astext()
         parts = title.split()
@@ -38,13 +39,23 @@ class Resource(Section):
             options = option.split()
             if len(options) == 1:
                 # <identifier> [<URI template>]
-                self['identifier'] = parts[0]
+                self['identifier'] = re.sub('\s*\[(.*)\]$', '', title)
                 self['uri'] = options[0]
             else:
                 # <identifier> [<HTTP request method> <URI template>]
                 self['identifier'] = re.sub('\s*\[(.*)\]$', '', title)
                 self['http_method'] = options[0]
                 self['uri'] = options[1]
+
+    def restruct(self):
+        from sphinxcontrib.apiblueprint.utils import get_children
+
+        actions = get_children(self, Action)
+        if actions:
+            self['has_action'] = True
+            for subnode in actions:
+                if self['uri'] and subnode.get('uri') is None:
+                    subnode['uri'] = self['uri']
 
 
 class Model(Section):
@@ -56,7 +67,10 @@ class Schema(Section):
 
 
 class Action(Section):
-    pass
+    def parse_title(self):
+        matched = re.search('^(.*)\s+\[(.*)\]$', self[0].astext())
+        self['identifier'] = matched.group(1)
+        self['http_method'] = matched.group(2)
 
 
 class Request(Section):

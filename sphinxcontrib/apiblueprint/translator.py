@@ -55,6 +55,10 @@ class APIBlueprintPreTranslator(BaseNodeVisitor):
     def visit_Resource(self, node):
         node.parse_title()
 
+    def visit_Action(self, node):
+        node.parse_title()
+        node.remove(node[0])
+
     def visit_Parameters(self, node):
         node.remove(node[0])
 
@@ -77,7 +81,20 @@ class APIBlueprintPostTranslator(BaseNodeVisitor):
 
         replace_nodeclass(node, nodes.section)
 
+    def visit_Resource(self, node):
+        node.restruct()
+
     def depart_Resource(self, node):
+        if node['has_action']:
+            node[0].replace_self(nodes.title(text=node['identifier']))
+
+        replace_nodeclass(node, nodes.section)
+
+    def depart_Action(self, node):
+        label = "%s %s (%s)" % (node['http_method'], node['uri'], node['identifier'])
+        title = nodes.title(text=label)
+        node.insert(0, title)
+
         replace_nodeclass(node, nodes.section)
 
     def visit_Response(self, node):
