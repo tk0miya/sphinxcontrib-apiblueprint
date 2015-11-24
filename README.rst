@@ -14,4 +14,4 @@ Include this extension in conf.py::
 
 Write ``apiblueprint`` directive into reST file where you want to import API doc::
 
-    .. swaggerdoc:: [path to API blueprint definition file]
+    .. apiblueprint:: [path to API blueprint definition file]
