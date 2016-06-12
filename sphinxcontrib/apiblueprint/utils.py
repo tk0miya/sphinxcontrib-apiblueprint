@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
+from docutils import nodes
 from sphinxcontrib.apiblueprint import addnodes
 
 
@@ -51,7 +52,7 @@ def detect_section_type(node, inside_resource=False):
     uri_template = re.compile('^/\S+$')
 
     try:
-        title = node[0].astext().strip()
+        title = node[0].astext().splitlines()[0].strip()
         leading_word = title.split()[0]
         option = extract_option(title)
 
@@ -86,3 +87,10 @@ def detect_section_type(node, inside_resource=False):
                 return None
     except:
         return None
+
+
+def split_title_and_content(node):
+    if len(node[0]) > 1 and node[0][1] == '\n':
+        title = node[0].pop(0)
+        node[0].pop(0)  # Remove return char
+        node.insert(0, nodes.title(text=title))

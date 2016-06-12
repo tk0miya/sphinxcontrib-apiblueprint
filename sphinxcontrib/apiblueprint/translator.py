@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from docutils import nodes
-from sphinxcontrib.apiblueprint.utils import detect_section_type, replace_nodeclass, transpose_subnodes
+from sphinxcontrib.apiblueprint.utils import (
+    detect_section_type, replace_nodeclass, transpose_subnodes, split_title_and_content
+)
 
 
 class BaseNodeVisitor(nodes.NodeVisitor):
@@ -34,6 +36,7 @@ class APIBlueprintPreTranslator(BaseNodeVisitor):
         for item in reversed(node):
             section_type = detect_section_type(item)
             if section_type:
+                split_title_and_content(item)
                 newnode = section_type()
                 transpose_subnodes(item, newnode)
                 node.remove(item)
