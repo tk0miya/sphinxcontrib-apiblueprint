@@ -11,6 +11,48 @@ class Section(nodes.Element):
     pass
 
 
+class PayloadSection(object):
+    """
+    An abstract class for Payload section
+    https://apiblueprint.org/documentation/specification.html#def-payload-section
+
+    The section inherits this class can have some nested sections:
+    * 0 or 1 Headers Section
+    * 0 or 1 Attributes Section
+    * 0 or 1 Body Section
+    * 0 or 1 Schema Section
+
+    If there is no nested sections, the content is considered as Body section.
+    """
+
+    def restruct(self):
+        """restructs nested sections:
+
+        * consider the contents as Body section if no nested sections
+        * merge content-type to Header section
+        """
+        from sphinxcontrib.apiblueprint.utils import get_children, transpose_subnodes
+
+        if not get_children(self, Section):
+            body = Body()
+            transpose_subnodes(self, body)
+            self += body
+            body.dedent()
+
+        if self.get('content_type'):
+            headers = get_children(self, Headers)
+            if not headers:
+                header = Headers()
+                header.add_header('Content-Type: %s' % self['content_type'])
+
+                body = get_children(self, Body)[0]
+                pos = self.index(body)
+                self.insert(pos, header)
+            else:
+                for header in headers:
+                    header.add_header('Content-Type: %s' % self['content_type'])
+
+
 class ResourceGroup(Section):
     def parse_title(self):
         _, identifier = self[0].astext().split(None, 1)
@@ -73,11 +115,23 @@ class Action(Section):
         self['http_method'] = matched.group(2)
 
 
-class Request(Section):
-    pass
+class Request(Section, PayloadSection):
+    def parse_title(self):
+        matched = re.search('^Request(?:\s+(.+))?$', self[0].astext())
+        if not matched:
+            raise ParseError('Unknown response type: %s' % self[0].astext())
+
+        argument = matched.group(1) or ''
+        matched = re.search('^(.*?\s+)?\((.+)\)$', argument)
+        if matched:
+            self['identifier'] = (matched.group(1) or '').strip()
+            self['content_type'] = (matched.group(2) or '').strip()
+        else:
+            self['identifier'] = argument
+            self['content_type'] = ''
 
 
-class Response(Section):
+class Response(Section, PayloadSection):
     def parse_title(self):
         matched = re.search('^Response\s+(\d+)(?:\s+\((.+)\))?$', self[0].astext())
         if not matched:
@@ -85,27 +139,6 @@ class Response(Section):
 
         self['status_code'] = int(matched.group(1))
         self['content_type'] = (matched.group(2) or '').strip()
-
-    def restruct(self):
-        from sphinxcontrib.apiblueprint.utils import get_children, transpose_subnodes
-
-        if not get_children(self, Section):
-            body = Body()
-            transpose_subnodes(self, body)
-            self += body
-            body.dedent()
-
-        headers = get_children(self, Headers)
-        if not headers:
-            header = Headers()
-            header.add_header('Content-Type: %s' % self['content_type'])
-
-            body = get_children(self, Body)[0]
-            pos = self.index(body)
-            self.insert(pos, header)
-        else:
-            for header in headers:
-                header.add_header('Content-Type: %s' % self['content_type'])
 
 
 class Parameters(Section):

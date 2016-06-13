@@ -65,6 +65,10 @@ class APIBlueprintPreTranslator(BaseNodeVisitor):
     def visit_Parameters(self, node):
         node.remove(node[0])
 
+    def visit_Request(self, node):
+        node.parse_title()
+        node.remove(node[0])
+
     def visit_Response(self, node):
         node.parse_title()
         node.remove(node[0])
@@ -99,6 +103,18 @@ class APIBlueprintPostTranslator(BaseNodeVisitor):
         node.insert(0, title)
 
         replace_nodeclass(node, nodes.section)
+
+    def visit_Request(self, node):
+        node.restruct()
+
+    def depart_Request(self, node):
+        title = nodes.paragraph()
+        title += nodes.strong(text='Request')
+        if node['identifier']:
+            title += nodes.Text(' ' + node['identifier'])
+        node.insert(0, title)
+
+        replace_nodeclass(node, nodes.container)
 
     def visit_Response(self, node):
         node.restruct()

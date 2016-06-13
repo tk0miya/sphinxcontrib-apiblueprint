@@ -236,3 +236,63 @@ class TestCase(unittest.TestCase):
         self.assertEqual(blueprint[2][1][1].astext(), 'message (string, required)')
         self.assertEqual(blueprint[2][2][0].astext(), 'Response 200')
         self.assertEqual(blueprint[2][2][2][1].astext(), 'OK')
+
+    @with_app(srcdir='tests/template', copy_srcdir_to_tmpdir=True)
+    def test_request(self, app, status, warnings):
+        """
+        # Blog Post [/posts]
+        ## Create a new Post [POST]
+        + Request (application/json)
+            + Body
+
+              {
+                "message": "hello world"
+              }
+
+        + Response 200 (text/plain)
+
+            OK
+        """
+        app.build()
+        print(status.getvalue(), warnings.getvalue())
+
+        blueprint = app.env.get_doctree('index')[0][1]
+        self.assertEqual(blueprint[0].astext(), 'Blog Post [/posts]')
+        self.assertEqual(blueprint[1].astext(), 'Create a new Post [POST]')
+        self.assertEqual(blueprint[2][0].astext(), 'Request')
+        self.assertEqual(blueprint[2][1][0].astext(), 'Headers:')
+        self.assertEqual(blueprint[2][1][1].astext(), 'Content-Type: application/json')
+        self.assertEqual(blueprint[2][2][0].astext(), 'Body:')
+        self.assertEqual(blueprint[2][2][1].astext(), '{\n"message": "hello world"\n}')
+        self.assertEqual(blueprint[3][0].astext(), 'Response 200')
+        self.assertEqual(blueprint[3][2][1].astext(), 'OK')
+
+    @with_app(srcdir='tests/template', copy_srcdir_to_tmpdir=True)
+    def test_request_having_identifier(self, app, status, warnings):
+        """
+        # Blog Post [/posts]
+        ## Create a new Post [POST]
+        + Request Create a new Post (application/json)
+            + Body
+
+              {
+                "message": "hello world"
+              }
+
+        + Response 200 (text/plain)
+
+            OK
+        """
+        app.build()
+        print(status.getvalue(), warnings.getvalue())
+
+        blueprint = app.env.get_doctree('index')[0][1]
+        self.assertEqual(blueprint[0].astext(), 'Blog Post [/posts]')
+        self.assertEqual(blueprint[1].astext(), 'Create a new Post [POST]')
+        self.assertEqual(blueprint[2][0].astext(), 'Request Create a new Post')
+        self.assertEqual(blueprint[2][1][0].astext(), 'Headers:')
+        self.assertEqual(blueprint[2][1][1].astext(), 'Content-Type: application/json')
+        self.assertEqual(blueprint[2][2][0].astext(), 'Body:')
+        self.assertEqual(blueprint[2][2][1].astext(), '{\n"message": "hello world"\n}')
+        self.assertEqual(blueprint[3][0].astext(), 'Response 200')
+        self.assertEqual(blueprint[3][2][1].astext(), 'OK')
