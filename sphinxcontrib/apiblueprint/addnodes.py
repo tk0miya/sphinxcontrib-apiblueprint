@@ -156,7 +156,7 @@ class Headers(Section):
         if len(self) == 0:
             self += nodes.literal_block(text=header)
         else:
-            literal = get_children(self, nodes.literal_block)[0]
+            literal = get_children(self, (nodes.literal_block, nodes.paragraph))[0]
             new_header = header + "\n" + literal.astext()
             literal.replace_self(nodes.literal_block(text=new_header))
 
