@@ -31,22 +31,28 @@ class TestCase(unittest.TestCase):
         (app.srcdir / 'api.md').write_text(
             "This is Markdown document\n"
             "<!-- include(subdoc1.md) -->\n"
-            "<!-- include(subdoc2.md) -->\n"
+            "\n"
+            "    <!-- include(subdoc2.md) -->\n"
         )
         (app.srcdir / 'subdoc1.md').write_text(
             "This is sub1 document\n"
+            "Line1-2\n"
         )
         (app.srcdir / 'subdoc2.md').write_text(
             "This is sub2 document\n"
+            "Line2-2\n"
         )
 
         app.build()
         print(status.getvalue(), warnings.getvalue())
         content = app.env.get_doctree('index')[0]
-        self.assertEqual(content.astext(), ("Example API\n\n"
-                                            "This is Markdown document\n"
-                                            "This is sub1 document\n\n"
-                                            "This is sub2 document"))
+        self.assertIsInstance(content[0], nodes.title)
+        self.assertIsInstance(content[1], nodes.paragraph)
+        self.assertIsInstance(content[2], nodes.literal_block)
+        self.assertEqual(content[0].astext(), "Example API")
+        self.assertEqual(content[1].astext(), ("This is Markdown document\n"
+                                               "This is sub1 document\nLine1-2"))
+        self.assertEqual(content[2].astext(), ("This is sub2 document\nLine2-2"))
 
     @with_app(srcdir='tests/template', copy_srcdir_to_tmpdir=True)
     def test_note_dependency(self, app, status, warnings):
