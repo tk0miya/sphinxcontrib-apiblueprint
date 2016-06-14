@@ -144,6 +144,7 @@ class APIBlueprintPostTranslator(BaseNodeVisitor):
         title = nodes.paragraph(text='Headers:')
         node.insert(0, title)
 
+        replace_nodeclass(node[1], nodes.literal_block)
         replace_nodeclass(node, nodes.container)
 
 
