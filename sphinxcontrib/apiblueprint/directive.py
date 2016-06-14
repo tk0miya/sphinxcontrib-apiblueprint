@@ -35,7 +35,7 @@ class ApiBlueprintDirective(Directive):
 
     def read_markdown(self, relfn, abspath, included):
         if abspath in included:
-            raise self.error('Infinit include loop has detected. check your API definitions.')
+            raise self.error('Infinite include loop has detected. check your API definitions.')
 
         try:
             with io.open(abspath, 'r', encoding='utf-8-sig') as fd:

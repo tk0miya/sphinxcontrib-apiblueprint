@@ -86,7 +86,7 @@ class TestCase(unittest.TestCase):
 
         app.build()
         print(status.getvalue(), warnings.getvalue())
-        self.assertIn('ERROR: Infinit include loop has detected. check your API definitions.', warnings.getvalue())
+        self.assertIn('ERROR: Infinite include loop has detected. check your API definitions.', warnings.getvalue())
 
     @with_app(srcdir='tests/template', copy_srcdir_to_tmpdir=True)
     def test_target_not_found(self, app, status, warnings):
