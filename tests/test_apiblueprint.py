@@ -26,6 +26,29 @@ def with_app(**sphinxkwargs):
 
 class TestCase(unittest.TestCase):
     @with_app(srcdir='tests/template', copy_srcdir_to_tmpdir=True)
+    def test_include(self, app, status, warnings):
+        # prepare
+        (app.srcdir / 'api.md').write_text(
+            "This is Markdown document\n"
+            "<!-- include(subdoc1.md) -->\n"
+            "<!-- include(subdoc2.md) -->\n"
+        )
+        (app.srcdir / 'subdoc1.md').write_text(
+            "This is sub1 document\n"
+        )
+        (app.srcdir / 'subdoc2.md').write_text(
+            "This is sub2 document\n"
+        )
+
+        app.build()
+        print(status.getvalue(), warnings.getvalue())
+        content = app.env.get_doctree('index')[0]
+        self.assertEqual(content.astext(), ("Example API\n\n"
+                                            "This is Markdown document\n"
+                                            "This is sub1 document\n\n"
+                                            "This is sub2 document"))
+
+    @with_app(srcdir='tests/template', copy_srcdir_to_tmpdir=True)
     def test_note_dependency(self, app, status, warnings):
         # prepare
         (app.srcdir / 'api.md').write_text(

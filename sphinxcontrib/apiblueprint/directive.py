@@ -44,15 +44,11 @@ class ApiBlueprintDirective(Directive):
         except IOError as exc:
             raise self.error('Fail to read API Blueprint: %s' % exc)
 
-        include_stmt = re.compile('<!--\s+include\(([^)]+)\)\s+-->')
-        while True:
-            matched = include_stmt.search(content)
-            if not matched:
-                break
+        parts = re.split('<!--\s+include\(([^)]+)\)\s+-->', content, re.M)
+        for i in range(len(parts) // 2):
+            filename = parts[i * 2 + 1]
 
-            filename = matched.group(1)
             relfn_included, abspath_included = relfn2path(self.env, relfn, filename)
-            replace = self.read_markdown(relfn_included, abspath_included, included + [abspath])
-            content = include_stmt.sub(replace, content)
+            parts[i * 2 + 1] = self.read_markdown(relfn_included, abspath_included, included + [abspath])
 
-        return content
+        return "".join(parts)
