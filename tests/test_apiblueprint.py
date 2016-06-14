@@ -125,16 +125,6 @@ class TestCase(unittest.TestCase):
         self.assertIn('ERROR: Fail to read API Blueprint: [Errno 2] No such file or directory:', warnings.getvalue())
 
     @with_app(srcdir='tests/template', copy_srcdir_to_tmpdir=True)
-    def test_included_file_not_found(self, app, status, warnings):
-        (app.srcdir / 'api.md').write_text(
-            "This is *Markdown* document\n"
-            "<!-- include(subdoc.md) -->"
-        )
-        app.build()
-        print(status.getvalue(), warnings.getvalue())
-        self.assertIn('ERROR: Fail to read API Blueprint: [Errno 2] No such file or directory:', warnings.getvalue())
-
-    @with_app(srcdir='tests/template', copy_srcdir_to_tmpdir=True)
     def test_simple_apiblueprint(self, app, status, warnings):
         """
         # GET /message
