@@ -60,7 +60,7 @@ class ApiBlueprintDirective(Directive):
             for fn in reader.processed:
                 self.env.note_dependency(fn)
             doctree = publish_doctree(content, parser=CommonMarkParser())
-            translate(doctree)
+            translate(self.env, doctree)
 
             return doctree[:]
         except RuntimeError as exc:

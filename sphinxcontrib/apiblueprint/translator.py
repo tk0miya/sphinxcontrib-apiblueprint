@@ -1,11 +1,17 @@
 # -*- coding: utf-8 -*-
 from docutils import nodes
+from sphinx import addnodes
 from sphinxcontrib.apiblueprint.utils import (
     detect_section_type, replace_nodeclass, transpose_subnodes, split_title_and_content
 )
+from sphinxcontrib.httpdomain import http_resource_anchor
 
 
 class BaseNodeVisitor(nodes.NodeVisitor):
+    def __init__(self, env, *args):
+        self.env = env
+        nodes.NodeVisitor.__init__(self, *args)
+
     def warn(self, *args, **kwargs):
         self.document.reporter.warn(*args, **kwargs)
 
@@ -98,11 +104,25 @@ class APIBlueprintPostTranslator(BaseNodeVisitor):
         replace_nodeclass(node, nodes.section)
 
     def depart_Action(self, node):
-        label = "%s %s (%s)" % (node['http_method'], node['uri'], node['identifier'])
-        title = nodes.title(text=label)
-        node.insert(0, title)
+        http_method = node['http_method']
+        uri = node['uri']
 
-        replace_nodeclass(node, nodes.section)
+        self.env.domaindata['http'][http_method.lower()][uri] = (self.env.docname, node['identifier'], False)
+        desc = addnodes.desc(domain='http',
+                             desctype=http_method.lower(),
+                             objtype=http_method.lower())
+
+        sig = addnodes.desc_signature(method=http_method.lower(), path=uri, first=False,
+                                      fullname="%s %s" % (http_method, uri))
+        sig += addnodes.desc_name(text="%s %s (%s)" % (http_method, uri, node['identifier']))
+        sig['ids'].append(http_resource_anchor(http_method, uri))
+        desc.append(sig)
+
+        content = addnodes.desc_content()
+        transpose_subnodes(node, content)
+        desc.append(content)
+
+        node.replace_self(desc)
 
     def visit_Request(self, node):
         node.restruct()
@@ -148,9 +168,9 @@ class APIBlueprintPostTranslator(BaseNodeVisitor):
         replace_nodeclass(node, nodes.container)
 
 
-def translate(doctree):
-    pre_translator = APIBlueprintPreTranslator(doctree)
+def translate(env, doctree):
+    pre_translator = APIBlueprintPreTranslator(env, doctree)
     doctree.walkabout(pre_translator)
-    post_translator = APIBlueprintPostTranslator(doctree)
+    post_translator = APIBlueprintPostTranslator(env, doctree)
     doctree.walkabout(post_translator)
     return doctree

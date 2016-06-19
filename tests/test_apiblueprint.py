@@ -4,6 +4,7 @@ from time import time
 from docutils import nodes
 from functools import wraps
 from textwrap import dedent
+from sphinx import addnodes
 
 
 # export docstring to markdown file automatically
@@ -249,12 +250,16 @@ class TestCase(unittest.TestCase):
         blueprint = app.env.get_doctree('index')[0][1]
         self.assertEqual(blueprint[0].astext(), 'Blog Posts')
         self.assertEqual(blueprint[1][0].astext(), 'GET /posts (Retrieve Blog Posts)')
-        self.assertEqual(blueprint[1][1][2][1].astext(), 'Hello World!')
+        self.assertIsInstance(blueprint[1], addnodes.desc)
+        self.assertIsInstance(blueprint[1][0], addnodes.desc_signature)
+        self.assertIsInstance(blueprint[1][0][0], addnodes.desc_name)
+        self.assertEqual(blueprint[1][1][0][2][1].astext(), 'Hello World!')
+        self.assertIsInstance(blueprint[1][1], addnodes.desc_content)
         self.assertEqual(blueprint[2][0].astext(), 'POST /posts (Create a new Post)')
-        self.assertEqual(blueprint[2][1][0].astext(), 'Parameters:')
-        self.assertEqual(blueprint[2][1][1].astext(), 'message (string, required)')
-        self.assertEqual(blueprint[2][2][0].astext(), 'Response 200')
-        self.assertEqual(blueprint[2][2][2][1].astext(), 'OK')
+        self.assertEqual(blueprint[2][1][0][0].astext(), 'Parameters:')
+        self.assertEqual(blueprint[2][1][0][1].astext(), 'message (string, required)')
+        self.assertEqual(blueprint[2][1][1][0].astext(), 'Response 200')
+        self.assertEqual(blueprint[2][1][1][2][1].astext(), 'OK')
 
     @with_app(srcdir='tests/template', copy_srcdir_to_tmpdir=True)
     def test_request(self, app, status, warnings):
