@@ -48,6 +48,7 @@ class MarkdownReader(object):
 class ApiBlueprintDirective(Directive):
     has_content = False
     required_arguments = 1
+    final_argument_whitespace = True
 
     def run(self):
         self.env = self.state.document.settings.env
