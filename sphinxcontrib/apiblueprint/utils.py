@@ -9,7 +9,7 @@ def get_children(node, cls):
 
 
 def replace_nodeclass(node, cls):
-    newnode = cls()
+    newnode = cls(**node.attributes)
     transpose_subnodes(node, newnode)
     node.replace_self(newnode)
 

@@ -4,6 +4,7 @@ from sphinx import addnodes
 from sphinxcontrib.apiblueprint.utils import (
     detect_section_type, replace_nodeclass, transpose_subnodes, split_title_and_content
 )
+from sphinxcontrib.apiblueprint.addnodes import Action
 from sphinxcontrib.httpdomain import http_resource_anchor
 
 
@@ -64,6 +65,11 @@ class APIBlueprintPreTranslator(BaseNodeVisitor):
     def visit_Resource(self, node):
         node.parse_title()
 
+    def depart_Resource(self, node):
+        if len(node.traverse(Action)) == 0:
+            action = replace_nodeclass(node, Action)
+            action.remove(action[0])
+
     def visit_Action(self, node):
         node.parse_title()
         node.remove(node[0])
@@ -114,15 +120,18 @@ class APIBlueprintPostTranslator(BaseNodeVisitor):
 
         sig = addnodes.desc_signature(method=http_method.lower(), path=uri, first=False,
                                       fullname="%s %s" % (http_method, uri))
-        sig += addnodes.desc_name(text="%s %s (%s)" % (http_method, uri, node['identifier']))
         sig['ids'].append(http_resource_anchor(http_method, uri))
-        desc.append(sig)
+        if node['identifier']:
+            sig += addnodes.desc_name(text="%s %s (%s)" % (http_method, uri, node['identifier']))
+        else:
+            sig += addnodes.desc_name(text="%s %s" % (http_method, uri))
 
         content = addnodes.desc_content()
         transpose_subnodes(node, content)
-        desc.append(content)
 
         node.replace_self(desc)
+        desc.append(sig)
+        desc.append(content)
 
     def visit_Request(self, node):
         node.restruct()
