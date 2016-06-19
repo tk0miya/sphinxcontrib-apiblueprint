@@ -221,6 +221,19 @@ class TestCase(unittest.TestCase):
         self.assertIsInstance(content[0][2][1], nodes.literal_block)
 
     @with_app(srcdir='tests/template', copy_srcdir_to_tmpdir=True)
+    def test_empty_response(self, app, status, warnings):
+        """
+        # POST /message
+        + Response 204
+        """
+        app.build()
+        print(status.getvalue(), warnings.getvalue())
+
+        blueprint = app.env.get_doctree('index')[0][1]
+        self.assertEqual(blueprint[0].astext(), 'POST /message')
+        self.assertEqual(blueprint[1].astext(), 'Response 204')
+
+    @with_app(srcdir='tests/template', copy_srcdir_to_tmpdir=True)
     def test_resource_group(self, app, status, warnings):
         """
         # Group Blog Posts

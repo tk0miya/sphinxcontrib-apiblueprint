@@ -33,7 +33,7 @@ class PayloadSection(object):
         """
         from sphinxcontrib.apiblueprint.utils import get_children, transpose_subnodes
 
-        if not get_children(self, Section):
+        if len(self) > 0 and not get_children(self, Section):
             body = Body()
             transpose_subnodes(self, body)
             self += body
@@ -45,9 +45,12 @@ class PayloadSection(object):
                 header = Headers()
                 header.add_header('Content-Type: %s' % self['content_type'])
 
-                body = get_children(self, Body)[0]
-                pos = self.index(body)
-                self.insert(pos, header)
+                bodies = get_children(self, Body)
+                if len(bodies) == 0:
+                    self.append(header)
+                else:
+                    pos = self.index(bodies[0])
+                    self.insert(pos, header)
             else:
                 for header in headers:
                     header.add_header('Content-Type: %s' % self['content_type'])
