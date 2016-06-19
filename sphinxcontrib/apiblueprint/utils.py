@@ -3,6 +3,9 @@ import re
 from docutils import nodes
 from sphinxcontrib.apiblueprint import addnodes
 
+# HTTP methods (from RFC7231)
+HTTP_METHODS = ["GET", "HEAD", "POST", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE"]
+
 
 def get_children(node, cls):
     return [subnode for subnode in node if isinstance(subnode, cls)]
@@ -46,8 +49,6 @@ def detect_section_type(node, inside_resource=False):
         "Attributes": addnodes.Attributes,
         "Relation:": addnodes.Relation,
     }
-    # HTTP methods (from RFC7231)
-    http_methods = ["GET", "HEAD", "POST", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE"]
     # URI Template
     uri_template = re.compile('^/\S+$')
 
@@ -60,13 +61,13 @@ def detect_section_type(node, inside_resource=False):
             return single_keywords[title]
         elif leading_word in leading_keywords:
             return leading_keywords[leading_word]
-        elif title in http_methods:
+        elif title in HTTP_METHODS:
             # <HTTP request method>  => Action section
             return addnodes.Action
-        elif option in http_methods:
+        elif option in HTTP_METHODS:
             # <identifier> [<HTTP request method>] => Action section
             return addnodes.Action
-        elif leading_word in http_methods:
+        elif leading_word in HTTP_METHODS:
             # <HTTP request method> <URI template>  => Resource section
             return addnodes.Resource
         elif uri_template.match(title):
@@ -77,7 +78,7 @@ def detect_section_type(node, inside_resource=False):
             return addnodes.Resource
         elif option:
             method, uri = option.split(None, 1)
-            if method in http_methods and uri_template.match(uri):
+            if method in HTTP_METHODS and uri_template.match(uri):
                 # <identifier> [<HTTP request method> <URI template>] => Resource or Action
                 if inside_resource:
                     return addnodes.Action

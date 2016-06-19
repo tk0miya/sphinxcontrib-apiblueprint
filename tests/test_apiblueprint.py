@@ -258,7 +258,7 @@ class TestCase(unittest.TestCase):
     def test_action(self, app, status, warnings):
         """
         # Blog Posts [/posts]
-        ## Retrieve Blog Posts [GET]
+        ## GET
         + Response 200 (text/plain)
 
             Hello World!
@@ -278,7 +278,7 @@ class TestCase(unittest.TestCase):
         self.assertEqual(blueprint[0].astext(), 'Blog Posts')
 
         get = blueprint[1]
-        self.assertEqual(get[0].astext(), 'GET /posts (Retrieve Blog Posts)')
+        self.assertEqual(get[0].astext(), 'GET /posts')
         self.assertEqual(get[1][0][2][1].astext(), 'Hello World!')
 
         post = blueprint[2]
@@ -287,6 +287,22 @@ class TestCase(unittest.TestCase):
         self.assertEqual(post[1][0][1].astext(), 'message (string, required)')
         self.assertEqual(post[1][1][0].astext(), 'Response 200')
         self.assertEqual(post[1][1][2][1].astext(), 'OK')
+
+    @with_app(srcdir='tests/template', copy_srcdir_to_tmpdir=True)
+    def test_action_having_uri(self, app, status, warnings):
+        """
+        # Retrieve Blog Posts [GET /posts]
+        + Response 200 (text/plain)
+
+            Hello World!
+        """
+        app.build()
+        print(status.getvalue(), warnings.getvalue())
+
+        blueprint = app.env.get_doctree('index')[0][1]
+        self.assertEqual(blueprint[0].astext(), 'GET /posts (Retrieve Blog Posts)')
+        self.assertEqual(blueprint[1][0][0].astext(), 'Response 200')
+        self.assertEqual(blueprint[1][0][2][1].astext(), 'Hello World!')
 
     @with_app(srcdir='tests/template', copy_srcdir_to_tmpdir=True)
     def test_request(self, app, status, warnings):

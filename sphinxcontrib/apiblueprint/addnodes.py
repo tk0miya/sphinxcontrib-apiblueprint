@@ -110,9 +110,23 @@ class Schema(Section):
 
 class Action(Section):
     def parse_title(self):
-        matched = re.search('^(.*)\s+\[(.*)\]$', self[0].astext())
-        self['identifier'] = matched.group(1)
-        self['http_method'] = matched.group(2)
+        from sphinxcontrib.apiblueprint.utils import HTTP_METHODS
+
+        title = self[0].astext().strip()
+        if title in HTTP_METHODS:
+            self['identifier'] = ''
+            self['http_method'] = title
+            self['uri'] = None
+        else:
+            matched = re.search('^(.*)\s+\[(.*)\]$', self[0].astext())
+            self['identifier'] = matched.group(1)
+            parts = matched.group(2).split()
+            if len(parts) == 1:
+                self['http_method'] = parts[0]
+                self['uri'] = None
+            else:
+                self['http_method'] = parts[0]
+                self['uri'] = parts[1]
 
 
 class Request(Section, PayloadSection):
