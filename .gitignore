@@ -3,6 +3,7 @@
 *.swp
 
 .coverage
+.cache/
 .tox/
 bin/
 include/
