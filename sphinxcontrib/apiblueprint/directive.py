@@ -59,7 +59,8 @@ class ApiBlueprintDirective(Directive):
             content = reader.read(relfn, abspath, [])
             for fn in reader.processed:
                 self.env.note_dependency(fn)
-            doctree = publish_doctree(content, parser=CommonMarkParser())
+            doctree = publish_doctree(content, parser=CommonMarkParser(),
+                                      settings_overrides={'doctitle_xform': False})
             translate(self.env, doctree)
 
             return doctree[:]
