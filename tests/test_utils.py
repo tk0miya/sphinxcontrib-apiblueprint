@@ -21,10 +21,10 @@ class TestCase(unittest.TestCase):
         self.assertEqual(addnodes.Resource, detect_section_type(node2title(title)))
 
         title = 'GET /posts/{id}'
-        self.assertEqual(addnodes.Resource, detect_section_type(node2title(title)))
+        self.assertEqual(addnodes.Action, detect_section_type(node2title(title)))
 
         title = 'Blog Posts [GET /posts/{id}]'
-        self.assertEqual(addnodes.Resource, detect_section_type(node2title(title)))
+        self.assertEqual(addnodes.Action, detect_section_type(node2title(title)))
 
         title = 'Model (text/plain)'
         self.assertEqual(addnodes.Model, detect_section_type(node2title(title)))
@@ -38,14 +38,11 @@ class TestCase(unittest.TestCase):
         title = 'Retrieve Blog Posts [GET]'
         self.assertEqual(addnodes.Action, detect_section_type(node2title(title)))
 
-        title = 'Delete a Post [DELETE /posts/{id}]'
-        self.assertEqual(addnodes.Action, detect_section_type(node2title(title), inside_resource=True))
-
         title = 'Request Create Blog Post (application/json)'
-        self.assertEqual(addnodes.Request, detect_section_type(node2title(title), inside_resource=True))
+        self.assertEqual(addnodes.Request, detect_section_type(node2title(title)))
 
         title = 'Response 201 (application/json)'
-        self.assertEqual(addnodes.Response, detect_section_type(node2title(title), inside_resource=True))
+        self.assertEqual(addnodes.Response, detect_section_type(node2title(title)))
 
         title = 'Parameters'
         self.assertEqual(addnodes.Parameters, detect_section_type(node2title(title)))

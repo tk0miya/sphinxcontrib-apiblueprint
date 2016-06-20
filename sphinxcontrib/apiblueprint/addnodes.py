@@ -76,21 +76,10 @@ class Resource(Section):
         if len(parts) == 1:
             # <URI template>
             self['uri'] = parts[0]
-        elif len(parts) == 2 and option is None:
-            # <HTTP request method> <URI template>
-            self['http_method'] = parts[0]
-            self['uri'] = parts[1]
         else:
-            options = option.split()
-            if len(options) == 1:
-                # <identifier> [<URI template>]
-                self['identifier'] = re.sub('\s*\[(.*)\]$', '', title)
-                self['uri'] = options[0]
-            else:
-                # <identifier> [<HTTP request method> <URI template>]
-                self['identifier'] = re.sub('\s*\[(.*)\]$', '', title)
-                self['http_method'] = options[0]
-                self['uri'] = options[1]
+            # <identifier> [<URI template>]
+            self['identifier'] = re.sub('\s*\[(.*)\]$', '', title)
+            self['uri'] = option
 
     def restruct(self):
         from sphinxcontrib.apiblueprint.utils import get_children
@@ -113,21 +102,31 @@ class Schema(Section):
 
 class Action(Section):
     def parse_title(self):
-        from sphinxcontrib.apiblueprint.utils import HTTP_METHODS
+        from sphinxcontrib.apiblueprint.utils import HTTP_METHODS, extract_option
 
         title = self[0].astext().strip()
+        option = extract_option(title)
         if title in HTTP_METHODS:
+            # <HTTP request method>
             self['identifier'] = ''
             self['http_method'] = title
             self['uri'] = None
+        elif option is None:
+            # <HTTP request method> <URI template>
+            http_method, uri = title.split()
+            self['identifier'] = ''
+            self['http_method'] = http_method
+            self['uri'] = uri
         else:
             matched = re.search('^(.*)\s+\[(.*)\]$', self[0].astext())
             self['identifier'] = matched.group(1)
             parts = matched.group(2).split()
             if len(parts) == 1:
+                # <identifier> [<HTTP request method>]
                 self['http_method'] = parts[0]
                 self['uri'] = None
             else:
+                # <identifier> [<HTTP request method> <URI template>]
                 self['http_method'] = parts[0]
                 self['uri'] = parts[1]
 

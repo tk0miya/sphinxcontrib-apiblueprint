@@ -33,7 +33,7 @@ def extract_option(title):
         return matched.group(1)
 
 
-def detect_section_type(node, inside_resource=False):
+def detect_section_type(node):
     single_keywords = {
         'Schema': addnodes.Schema,
         'Parameters': addnodes.Parameters,
@@ -68,8 +68,11 @@ def detect_section_type(node, inside_resource=False):
             # <identifier> [<HTTP request method>] => Action section
             return addnodes.Action
         elif leading_word in HTTP_METHODS:
-            # <HTTP request method> <URI template>  => Resource section
-            return addnodes.Resource
+            # <HTTP request method> <URI template>  => Action section
+            #
+            # Note: Originally, this is a Resource section which represents
+            # the Action section
+            return addnodes.Action
         elif uri_template.match(title):
             # <URI template>  => Resource section
             return addnodes.Resource
@@ -79,11 +82,10 @@ def detect_section_type(node, inside_resource=False):
         elif option:
             method, uri = option.split(None, 1)
             if method in HTTP_METHODS and uri_template.match(uri):
-                # <identifier> [<HTTP request method> <URI template>] => Resource or Action
-                if inside_resource:
-                    return addnodes.Action
-                else:
-                    return addnodes.Resource
+                # <identifier> [<HTTP request method> <URI template>] => Action section
+                #
+                # Note: Same as above. this is a Resource and Action at same time
+                return addnodes.Action
             else:
                 return None
     except:
