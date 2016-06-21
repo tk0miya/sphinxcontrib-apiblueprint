@@ -128,10 +128,8 @@ class APIBlueprintRepresenter(BaseNodeVisitor):
         replace_nodeclass(node, nodes.container)
 
     def depart_Headers(self, node):
-        title = nodes.paragraph(text='Headers:')
-        node.insert(0, title)
-
-        replace_nodeclass(node[1], nodes.literal_block)
+        node.append(nodes.paragraph(text='Headers:'))
+        node.append(nodes.literal_block(text="\n".join(sorted(node.headers))))
         replace_nodeclass(node, nodes.container)
 
 

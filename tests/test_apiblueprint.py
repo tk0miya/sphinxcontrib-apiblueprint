@@ -213,8 +213,8 @@ class TestCase(unittest.TestCase):
         content = desc[1]
         self.assertEqual(content[0][0].astext(), 'Response 200')
         self.assertEqual(content[0][1][0].astext(), 'Headers:')
-        self.assertEqual(content[0][1][1].astext(), ('Content-Type: text/plain\n'
-                                                     'Accept-Language: ja'))
+        self.assertEqual(content[0][1][1].astext(), ('Accept-Language: ja\n'
+                                                     'Content-Type: text/plain'))
         self.assertIsInstance(content[0][1][1], nodes.literal_block)
         self.assertEqual(content[0][2][0].astext(), 'Body:')
         self.assertEqual(content[0][2][1].astext(), 'Hello World!')

@@ -90,7 +90,7 @@ class PayloadSection(Section):
             headers = get_children(self, Headers)
             if not headers:
                 header = Headers()
-                header.add_header('Content-Type: %s' % self['content_type'])
+                header.headers.insert(0, 'Content-Type: %s' % self['content_type'])
 
                 bodies = get_children(self, Body)
                 if len(bodies) == 0:
@@ -100,7 +100,7 @@ class PayloadSection(Section):
                     self.insert(pos, header)
             else:
                 for header in headers:
-                    header.add_header('Content-Type: %s' % self['content_type'])
+                    header.headers.insert(0, 'Content-Type: %s' % self['content_type'])
 
     def validate(self):
         self.assert_having_only((Headers, Attributes, Body, Schema))
@@ -243,16 +243,17 @@ class Attributes(Section):
 
 
 class Headers(Section):
-    def add_header(self, header):
-        if len(self) == 0:
-            self += nodes.literal_block(text=header)
-        else:
-            literal = get_children(self, (nodes.literal_block, nodes.paragraph))[0]
-            new_header = header + "\n" + literal.astext()
-            literal.replace_self(nodes.literal_block(text=new_header))
+    def __init__(self, **kwargs):
+        self.headers = []
+        Section.__init__(self, **kwargs)
+
+    def parse_content(self):
+        for header in self.pop(0).astext().splitlines():
+            self.headers.append(header.strip())
 
     def validate(self):
-        self.assert_having_no_sections()
+        assert len(self) == 2 and isinstance(self[1], (nodes.literal_block, nodes.paragraph)), \
+            "Headers section should have only literal block"
 
 
 class Body(Section):
