@@ -33,7 +33,7 @@ class APIBlueprintTranslator(BaseNodeVisitor):
             node += section
 
     def depart_section(self, node):
-        section_type = detect_section_type(node)
+        section_type = detect_section_type("header", node)
         if section_type:
             newnode = section_type.parse_node(node)
             node.replace_self(newnode)
@@ -41,7 +41,7 @@ class APIBlueprintTranslator(BaseNodeVisitor):
     def depart_bullet_list(self, node):
         parent = node.parent
         for item in reversed(node):
-            section_type = detect_section_type(item)
+            section_type = detect_section_type("list", item)
             if section_type:
                 split_title_and_content(item)
                 newnode = section_type.parse_node(item)
@@ -119,6 +119,9 @@ class APIBlueprintRepresenter(BaseNodeVisitor):
         title = nodes.paragraph(text='Parameters:')
         node.insert(0, title)
 
+        replace_nodeclass(node, nodes.container)
+
+    def depart_Attributes(self, node):
         replace_nodeclass(node, nodes.container)
 
     def depart_Body(self, node):

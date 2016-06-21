@@ -5,6 +5,9 @@ from docutils import nodes
 # HTTP methods (from RFC7231)
 HTTP_METHODS = ["GET", "HEAD", "POST", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE"]
 
+# URI Template
+URI_TEMPLATE = re.compile('^/\S+$')
+
 
 def get_children(node, cls):
     return [subnode for subnode in node if isinstance(subnode, cls)]
@@ -32,7 +35,54 @@ def extract_option(title):
         return matched.group(1)
 
 
-def detect_section_type(node):
+def detect_section_type(entity, node):
+    title = node[0].astext().splitlines()[0].strip()
+    if entity == 'header':
+        return detect_header_section_type(title)
+    else:
+        return detect_list_section_type(title)
+
+
+def detect_header_section_type(title):
+    from sphinxcontrib.apiblueprint import addnodes
+
+    leading_word = title.split()[0]
+    option = extract_option(title) or ''
+
+    if title == 'Data Structures':
+        return addnodes.DataStructures
+    elif leading_word == 'Group':
+        return addnodes.ResourceGroup
+    elif title in HTTP_METHODS:
+        # <HTTP request method>  => Action section
+        return addnodes.Action
+    elif option in HTTP_METHODS:
+        # <identifier> [<HTTP request method>] => Action section
+        return addnodes.Action
+    elif leading_word in HTTP_METHODS:
+        # <HTTP request method> <URI template> => ResourceAction section
+        #
+        # Note: Originally, this is a Resource section which represents
+        # the Action section
+        return addnodes.ResourceAction
+    elif URI_TEMPLATE.match(title):
+        # <URI template>  => Resource section
+        return addnodes.Resource
+    elif URI_TEMPLATE.match(option):
+        # <identifier> [<URI template>] => Resource section
+        return addnodes.Resource
+    elif option:
+        method, uri = option.split(None, 1)
+        if method in HTTP_METHODS and URI_TEMPLATE.match(uri):
+            # <identifier> [<HTTP request method> <URI template>] => ResourceAction section
+            #
+            # Note: Same as above. this is a Resource and Action at same time
+            return addnodes.ResourceAction
+        else:
+            return None
+
+
+def detect_list_section_type(title):
     from sphinxcontrib.apiblueprint import addnodes
 
     single_keywords = {
@@ -40,56 +90,21 @@ def detect_section_type(node):
         'Parameters': addnodes.Parameters,
         'Headers': addnodes.Headers,
         'Body': addnodes.Body,
-        'Data Structures': addnodes.DataStructures,
     }
     leading_keywords = {
-        "Group": addnodes.ResourceGroup,
         "Model": addnodes.Model,
         "Request": addnodes.Request,
         "Response": addnodes.Response,
         "Attributes": addnodes.Attributes,
         "Relation:": addnodes.Relation,
     }
-    # URI Template
-    uri_template = re.compile('^/\S+$')
 
-    try:
-        title = node[0].astext().splitlines()[0].strip()
-        leading_word = title.split()[0]
-        option = extract_option(title)
-
-        if title in single_keywords:
-            return single_keywords[title]
-        elif leading_word in leading_keywords:
-            return leading_keywords[leading_word]
-        elif title in HTTP_METHODS:
-            # <HTTP request method>  => Action section
-            return addnodes.Action
-        elif option in HTTP_METHODS:
-            # <identifier> [<HTTP request method>] => Action section
-            return addnodes.Action
-        elif leading_word in HTTP_METHODS:
-            # <HTTP request method> <URI template> => ResourceAction section
-            #
-            # Note: Originally, this is a Resource section which represents
-            # the Action section
-            return addnodes.ResourceAction
-        elif uri_template.match(title):
-            # <URI template>  => Resource section
-            return addnodes.Resource
-        elif uri_template.match(option):
-            # <identifier> [<URI template>] => Resource section
-            return addnodes.Resource
-        elif option:
-            method, uri = option.split(None, 1)
-            if method in HTTP_METHODS and uri_template.match(uri):
-                # <identifier> [<HTTP request method> <URI template>] => ResourceAction section
-                #
-                # Note: Same as above. this is a Resource and Action at same time
-                return addnodes.ResourceAction
-            else:
-                return None
-    except:
+    leading_word = title.split()[0]
+    if title in single_keywords:
+        return single_keywords[title]
+    elif leading_word in leading_keywords:
+        return leading_keywords[leading_word]
+    else:
         return None
 
 
