@@ -22,7 +22,8 @@ class BaseNodeVisitor(nodes.NodeVisitor):
         pass
 
 
-class APIBlueprintPreTranslator(BaseNodeVisitor):
+class APIBlueprintTranslator(BaseNodeVisitor):
+    """Translate naked doctree from recommonmark to API Blueprintbased doctree"""
     def visit_document(self, node):
         if isinstance(node[0], nodes.title):
             # insert section node if doc has only ONE section
@@ -31,75 +32,41 @@ class APIBlueprintPreTranslator(BaseNodeVisitor):
             transpose_subnodes(node, section)
             node += section
 
-    def visit_section(self, node):
+    def depart_section(self, node):
         section_type = detect_section_type(node)
         if section_type:
-            newnode = replace_nodeclass(node, section_type)
-            newnode.walkabout(self)
+            newnode = section_type.parse_node(node)
+            node.replace_self(newnode)
 
-    def visit_bullet_list(self, node):
+    def depart_bullet_list(self, node):
         parent = node.parent
         for item in reversed(node):
             section_type = detect_section_type(item)
             if section_type:
                 split_title_and_content(item)
-                newnode = section_type()
-                transpose_subnodes(item, newnode)
+                newnode = section_type.parse_node(item)
                 node.remove(item)
 
                 index = parent.index(node)
                 parent.insert(index + 1, newnode)
 
-                newnode.walkabout(self)
-
         if len(node) == 0:
             parent.remove(node)
 
-        raise nodes.SkipNode
 
-    def visit_ResourceGroup(self, node):
-        node.parse_title()
-        node.remove(node[0])
-
-    def visit_Resource(self, node):
-        node.parse_title()
-
-    def visit_Action(self, node):
-        node.parse_title()
-        node.remove(node[0])
-
-    def visit_Parameters(self, node):
-        node.remove(node[0])
-
-    def visit_Request(self, node):
-        node.parse_title()
-        node.remove(node[0])
-
-    def visit_Response(self, node):
-        node.parse_title()
-        node.remove(node[0])
-
-    def visit_Headers(self, node):
-        node.remove(node[0])
-
-    def visit_Body(self, node):
-        node.remove(node[0])
-        node.dedent()
-
-
-class APIBlueprintPostTranslator(BaseNodeVisitor):
+class APIBlueprintRepresenter(BaseNodeVisitor):
+    """Translate API Bluerprint based doctree to common Sphinx doctree"""
     def depart_ResourceGroup(self, node):
         title = nodes.title(text=node['identifier'])
         node.insert(0, title)
 
         replace_nodeclass(node, nodes.section)
 
-    def visit_Resource(self, node):
-        node.restruct()
-
     def depart_Resource(self, node):
-        if node['has_action']:
-            node[0].replace_self(nodes.title(text=node['identifier']))
+        if node['identifier']:
+            node.insert(0, nodes.title(text=node['identifier']))
+        else:
+            node.insert(0, nodes.title(text=node['uri']))
 
         replace_nodeclass(node, nodes.section)
 
@@ -127,9 +94,6 @@ class APIBlueprintPostTranslator(BaseNodeVisitor):
         desc.append(sig)
         desc.append(content)
 
-    def visit_Request(self, node):
-        node.restruct()
-
     def depart_Request(self, node):
         title = nodes.paragraph()
         title += nodes.strong(text='Request')
@@ -138,9 +102,6 @@ class APIBlueprintPostTranslator(BaseNodeVisitor):
         node.insert(0, title)
 
         replace_nodeclass(node, nodes.container)
-
-    def visit_Response(self, node):
-        node.restruct()
 
     def depart_Response(self, node):
         title = nodes.paragraph()
@@ -172,8 +133,8 @@ class APIBlueprintPostTranslator(BaseNodeVisitor):
 
 
 def translate(env, doctree):
-    pre_translator = APIBlueprintPreTranslator(env, doctree)
-    doctree.walkabout(pre_translator)
-    post_translator = APIBlueprintPostTranslator(env, doctree)
-    doctree.walkabout(post_translator)
+    translator = APIBlueprintTranslator(env, doctree)
+    doctree.walkabout(translator)
+    representer = APIBlueprintRepresenter(env, doctree)
+    doctree.walkabout(representer)
     return doctree
