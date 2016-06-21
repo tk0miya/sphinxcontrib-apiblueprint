@@ -17,6 +17,7 @@ class Section(nodes.Element):
 
         section = cls(**node.attributes)
         transpose_subnodes(node, section)
+        section.validate()
         section.parse_title()
         section.parse_content()
         return section
@@ -26,6 +27,37 @@ class Section(nodes.Element):
 
     def parse_content(self):
         pass
+
+    def validate(self):
+        pass
+
+    def assert_having_only(self, classes):
+        if isinstance(classes, (list, tuple)):
+            class_names = [cls.__name__ for cls in classes]
+        else:
+            class_names = [classes.__name__]
+
+        nodes = get_children(self, Section)
+        assert len(nodes) == 0 or all(isinstance(node, classes) for node in nodes), \
+            "%s section should have only following sections: %s" % (self.__class__.__name__, class_names)
+
+    def assert_having_no_sections(self):
+        nodes = get_children(self, Section)
+        assert len(nodes) == 0, \
+            "%s section should not have any sections" % (self.__class__.__name__)
+
+    def assert_having_at_most_one(self, cls):
+        nodes = get_children(self, cls)
+        assert len(nodes) <= 1, \
+            "%s section should have at most one %s section" % (self.__class__.__name__, cls.__name__)
+
+    def assert_having_any(self, cls):
+        pass  # nothing to assert; only declaration
+
+    def assert_having_at_least_one(self, cls):
+        nodes = get_children(self, cls)
+        assert len(nodes) >= 1, \
+            "%s section should have at least one of %s sections" % (self.__class__.__name__, cls.__name__)
 
 
 class PayloadSection(Section):
@@ -70,11 +102,21 @@ class PayloadSection(Section):
                 for header in headers:
                     header.add_header('Content-Type: %s' % self['content_type'])
 
+    def validate(self):
+        self.assert_having_only((Headers, Attributes, Body, Schema))
+        self.assert_having_at_most_one(Headers)
+        self.assert_having_at_most_one(Attributes)
+        self.assert_having_at_most_one(Body)
+        self.assert_having_at_most_one(Schema)
+
 
 class ResourceGroup(Section):
     def parse_title(self):
         _, identifier = self.pop(0).astext().split(None, 1)
         self['identifier'] = identifier
+
+    def validate(self):
+        self.assert_having_only(Resource)
 
 
 class Resource(Section):
@@ -96,13 +138,22 @@ class Resource(Section):
             if node.get('uri') is None:
                 node['uri'] = self['uri']
 
+    def validate(self):
+        self.assert_having_only((Parameters, Attributes, Model, Action))
+        self.assert_having_at_most_one(Parameters)
+        self.assert_having_at_most_one(Attributes)
+        self.assert_having_at_most_one(Model)
+        self.assert_having_at_least_one(Action)
+
 
 class Model(Section):
-    pass
+    def validate(self):
+        self.assert_having_no_sections()
 
 
 class Schema(Section):
-    pass
+    def validate(self):
+        self.assert_having_no_sections()
 
 
 class Action(Section):
@@ -133,6 +184,14 @@ class Action(Section):
                 self['http_method'] = parts[0]
                 self['uri'] = parts[1]
 
+    def validate(self):
+        self.assert_having_only((Relation, Parameters, Attributes, Request, Response))
+        self.assert_having_at_most_one(Relation)
+        self.assert_having_at_most_one(Parameters)
+        self.assert_having_at_most_one(Attributes)
+        self.assert_having_any(Request)
+        self.assert_having_at_least_one(Response)
+
 
 class ResourceAction(Resource, Action):
     def parse_title(self):
@@ -140,6 +199,9 @@ class ResourceAction(Resource, Action):
 
     def parse_content(self):
         pass
+
+    def validate(self):
+        Action.validate(self)
 
 
 class Request(PayloadSection):
@@ -171,11 +233,13 @@ class Response(PayloadSection):
 
 
 class Parameters(Section):
-    pass
+    def validate(self):
+        self.assert_having_no_sections()
 
 
 class Attributes(Section):
-    pass
+    def validate(self):
+        pass  # TODO: assert MSON type definitions
 
 
 class Headers(Section):
@@ -187,6 +251,9 @@ class Headers(Section):
             new_header = header + "\n" + literal.astext()
             literal.replace_self(nodes.literal_block(text=new_header))
 
+    def validate(self):
+        self.assert_having_no_sections()
+
 
 class Body(Section):
     def parse_content(self):
@@ -197,10 +264,15 @@ class Body(Section):
             content = dedent(subnode.astext())
             subnode.replace_self(nodes.literal_block(text=content))
 
+    def validate(self):
+        self.assert_having_no_sections()
+
 
 class DataStructures(Section):
-    pass
+    def validate(self):
+        pass  # TODO: assert MSON type definitions
 
 
 class Relation(Section):
-    pass
+    def validate(self):
+        self.assert_having_no_sections()
