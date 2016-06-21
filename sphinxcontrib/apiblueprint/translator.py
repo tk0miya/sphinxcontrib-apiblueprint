@@ -122,7 +122,10 @@ class APIBlueprintRepresenter(BaseNodeVisitor):
         replace_nodeclass(node, nodes.container)
 
     def depart_Attributes(self, node):
-        replace_nodeclass(node, nodes.container)
+        bullet_list = nodes.bullet_list()
+        bullet_list += nodes.list_item()
+        transpose_subnodes(node, bullet_list[0])
+        node.replace_self(bullet_list)
 
     def depart_Body(self, node):
         title = nodes.paragraph(text='Body:')

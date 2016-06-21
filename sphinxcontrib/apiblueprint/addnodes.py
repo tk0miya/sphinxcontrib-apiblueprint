@@ -238,6 +238,9 @@ class Parameters(Section):
 
 
 class Attributes(Section):
+    def parse_title(self):
+        pass
+
     def validate(self):
         pass  # TODO: assert MSON type definitions
 
