@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 import re
 from docutils import nodes
+from textwrap import dedent
+from sphinxcontrib.apiblueprint.utils import (
+    HTTP_METHODS, extract_option, get_children, transpose_subnodes
+)
 
 
 class ParseError(Exception):
@@ -10,7 +14,6 @@ class ParseError(Exception):
 class Section(nodes.Element):
     @classmethod
     def parse_node(cls, node):
-        from sphinxcontrib.apiblueprint.utils import transpose_subnodes
 
         section = cls(**node.attributes)
         transpose_subnodes(node, section)
@@ -45,8 +48,6 @@ class PayloadSection(Section):
         * consider the contents as Body section if no nested sections
         * merge content-type to Header section
         """
-        from sphinxcontrib.apiblueprint.utils import get_children, transpose_subnodes
-
         if len(self) > 0 and not get_children(self, Section):
             body = Body()
             transpose_subnodes(self, body)
@@ -78,8 +79,6 @@ class ResourceGroup(Section):
 
 class Resource(Section):
     def parse_title(self):
-        from sphinxcontrib.apiblueprint.utils import extract_option
-
         title = self.pop(0).astext()
         parts = title.split()
         option = extract_option(title)
@@ -93,8 +92,6 @@ class Resource(Section):
             self['uri'] = option
 
     def parse_content(self):
-        from sphinxcontrib.apiblueprint.utils import get_children
-
         for node in get_children(self, Action):
             if node.get('uri') is None:
                 node['uri'] = self['uri']
@@ -110,8 +107,6 @@ class Schema(Section):
 
 class Action(Section):
     def parse_title(self):
-        from sphinxcontrib.apiblueprint.utils import HTTP_METHODS, extract_option
-
         title = self.pop(0).astext().strip()
         option = extract_option(title)
         if title in HTTP_METHODS:
@@ -177,8 +172,6 @@ class Attributes(Section):
 
 class Headers(Section):
     def add_header(self, header):
-        from sphinxcontrib.apiblueprint.utils import get_children
-
         if len(self) == 0:
             self += nodes.literal_block(text=header)
         else:
@@ -192,9 +185,6 @@ class Body(Section):
         self.dedent()
 
     def dedent(self):
-        from textwrap import dedent
-        from sphinxcontrib.apiblueprint.utils import get_children
-
         for subnode in get_children(self, (nodes.literal_block, nodes.paragraph)):
             content = dedent(subnode.astext())
             subnode.replace_self(nodes.literal_block(text=content))

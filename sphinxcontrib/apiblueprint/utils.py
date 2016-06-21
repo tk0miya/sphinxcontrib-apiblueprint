@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
 from docutils import nodes
-from sphinxcontrib.apiblueprint import addnodes
 
 # HTTP methods (from RFC7231)
 HTTP_METHODS = ["GET", "HEAD", "POST", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE"]
@@ -34,6 +33,8 @@ def extract_option(title):
 
 
 def detect_section_type(node):
+    from sphinxcontrib.apiblueprint import addnodes
+
     single_keywords = {
         'Schema': addnodes.Schema,
         'Parameters': addnodes.Parameters,
