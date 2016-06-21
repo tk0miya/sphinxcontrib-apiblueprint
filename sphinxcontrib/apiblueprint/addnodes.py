@@ -134,6 +134,14 @@ class Action(Section):
                 self['uri'] = parts[1]
 
 
+class ResourceAction(Resource, Action):
+    def parse_title(self):
+        Action.parse_title(self)
+
+    def parse_content(self):
+        pass
+
+
 class Request(PayloadSection):
     def parse_title(self):
         title = self.pop(0).astext()

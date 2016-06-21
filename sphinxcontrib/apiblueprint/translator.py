@@ -94,6 +94,9 @@ class APIBlueprintRepresenter(BaseNodeVisitor):
         desc.append(sig)
         desc.append(content)
 
+    def depart_ResourceAction(self, node):
+        self.depart_Action(node)
+
     def depart_Request(self, node):
         title = nodes.paragraph()
         title += nodes.strong(text='Request')

@@ -21,10 +21,10 @@ class TestCase(unittest.TestCase):
         self.assertEqual(addnodes.Resource, detect_section_type(node2title(title)))
 
         title = 'GET /posts/{id}'
-        self.assertEqual(addnodes.Action, detect_section_type(node2title(title)))
+        self.assertEqual(addnodes.ResourceAction, detect_section_type(node2title(title)))
 
         title = 'Blog Posts [GET /posts/{id}]'
-        self.assertEqual(addnodes.Action, detect_section_type(node2title(title)))
+        self.assertEqual(addnodes.ResourceAction, detect_section_type(node2title(title)))
 
         title = 'Model (text/plain)'
         self.assertEqual(addnodes.Model, detect_section_type(node2title(title)))

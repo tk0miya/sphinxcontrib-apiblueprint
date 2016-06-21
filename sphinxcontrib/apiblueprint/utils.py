@@ -69,11 +69,11 @@ def detect_section_type(node):
             # <identifier> [<HTTP request method>] => Action section
             return addnodes.Action
         elif leading_word in HTTP_METHODS:
-            # <HTTP request method> <URI template>  => Action section
+            # <HTTP request method> <URI template> => ResourceAction section
             #
             # Note: Originally, this is a Resource section which represents
             # the Action section
-            return addnodes.Action
+            return addnodes.ResourceAction
         elif uri_template.match(title):
             # <URI template>  => Resource section
             return addnodes.Resource
@@ -83,10 +83,10 @@ def detect_section_type(node):
         elif option:
             method, uri = option.split(None, 1)
             if method in HTTP_METHODS and uri_template.match(uri):
-                # <identifier> [<HTTP request method> <URI template>] => Action section
+                # <identifier> [<HTTP request method> <URI template>] => ResourceAction section
                 #
                 # Note: Same as above. this is a Resource and Action at same time
-                return addnodes.Action
+                return addnodes.ResourceAction
             else:
                 return None
     except:
