@@ -3,7 +3,7 @@ import re
 from docutils import nodes
 
 # HTTP methods (from RFC7231)
-HTTP_METHODS = ["GET", "HEAD", "POST", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE"]
+HTTP_METHODS = ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "CONNECT", "OPTIONS", "TRACE"]
 
 # URI Template
 URI_TEMPLATE = re.compile('^/\S+$')
