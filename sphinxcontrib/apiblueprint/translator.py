@@ -133,6 +133,14 @@ class APIBlueprintRepresenter(BaseNodeVisitor):
 
         replace_nodeclass(node, nodes.container)
 
+    def depart_DataStructures(self, node):
+        for desc in node.traverse(addnodes.desc):
+            name = desc[0]['names'][-1]
+            self.env.domaindata['js']['objects'][name] = (self.env.docname, 'data')
+
+        node.insert(0, nodes.title(text='Data Structures'))
+        replace_nodeclass(node, nodes.section)
+
     def depart_Headers(self, node):
         node.append(nodes.paragraph(text='Headers:'))
         node.append(nodes.literal_block(text="\n".join(sorted(node.headers))))

@@ -2,6 +2,7 @@
 import re
 from docutils import nodes
 from textwrap import dedent
+from sphinx import addnodes as sphinxnodes
 from sphinxcontrib.apiblueprint.utils import (
     HTTP_METHODS, extract_option, get_children, transpose_subnodes
 )
@@ -273,6 +274,33 @@ class Body(Section):
 
 
 class DataStructures(Section):
+    def parse_content(self):
+        for node in self:
+            if isinstance(node, nodes.section):
+                self.parse_section(node)
+
+    def parse_section(self, node):
+        matched = re.search('^(.*?)\s*\((.*)\)\s*$', node[0].astext())
+        if not matched:
+            return
+
+        objname = matched.group(1).strip()
+        typename = matched.group(2).strip()
+
+        desc = sphinxnodes.desc(domain='js', desctype='data', objtype='data')
+        sig = sphinxnodes.desc_signature(object='', fullname=objname, first=False)
+        sig['names'].append(objname)
+        sig['ids'].append(objname.replace('$', '_S_'))
+        sig += sphinxnodes.desc_name(text="%s (%s)" % (objname, typename))
+
+        content = sphinxnodes.desc_content()
+        node.pop(0)
+        transpose_subnodes(node, content)
+
+        node.replace_self(desc)
+        desc.append(sig)
+        desc.append(content)
+
     def validate(self):
         pass  # TODO: assert MSON type definitions
 

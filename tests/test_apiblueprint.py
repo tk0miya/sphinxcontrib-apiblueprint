@@ -384,3 +384,34 @@ class TestCase(unittest.TestCase):
         response = blueprint[1][1][1]
         self.assertEqual(response[0].astext(), 'Response 200')
         self.assertEqual(response[2][1].astext(), 'OK')
+
+    @with_app(srcdir='tests/template', copy_srcdir_to_tmpdir=True)
+    def test_data_structures(self, app, status, warnings):
+        """
+        # Data Structures
+        ## Blog (object)
+
+        + title (string)
+        + author (string)
+
+        ## Post (object)
+
+        + blog_id (integer)
+        + title (string)
+        + message (string)
+
+        """
+        app.build()
+        print(status.getvalue(), warnings.getvalue())
+
+        blueprint = app.env.get_doctree('index')[0][1]
+
+        self.assertEqual(blueprint[0].astext(), 'Data Structures')
+
+        blog = blueprint[1]
+        self.assertEqual(blog[0].astext(), 'Blog (object)')
+        self.assertEqual(blog[1].astext(), 'title (string)\n\nauthor (string)')
+
+        post = blueprint[2]
+        self.assertEqual(post[0].astext(), 'Post (object)')
+        self.assertEqual(post[1].astext(), 'blog_id (integer)\n\ntitle (string)\n\nmessage (string)')
