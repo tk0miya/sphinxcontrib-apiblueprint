@@ -74,6 +74,12 @@ class APIBlueprintRepresenter(BaseNodeVisitor):
         model = replace_nodeclass(node, nodes.section)
         model['ids'].append(nodes.make_id(model[0].astext()))
 
+    def depart_Schema(self, node):
+        title = nodes.paragraph(text='Schema:')
+        node.insert(0, title)
+
+        replace_nodeclass(node, nodes.container)
+
     def depart_Action(self, node):
         http_method = node['http_method']
         uri = node['uri']

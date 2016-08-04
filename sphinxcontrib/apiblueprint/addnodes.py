@@ -61,6 +61,19 @@ class Section(nodes.Element):
             "%s section should have at least one of %s sections" % (self.__class__.__name__, cls.__name__)
 
 
+class AssetSection(Section):
+    def parse_content(self):
+        self.dedent()
+
+    def dedent(self):
+        for subnode in get_children(self, (nodes.literal_block, nodes.paragraph)):
+            content = dedent(subnode.astext())
+            subnode.replace_self(nodes.literal_block(text=content))
+
+    def validate(self):
+        self.assert_having_no_sections()
+
+
 class PayloadSection(Section):
     """
     An abstract class for Payload section
@@ -159,9 +172,8 @@ class Model(Section):
         self.assert_having_at_most_one(Schema)
 
 
-class Schema(Section):
-    def validate(self):
-        self.assert_having_no_sections()
+class Schema(AssetSection):
+    pass
 
 
 class Action(Section):
@@ -267,17 +279,8 @@ class Headers(Section):
             "Headers section should have only literal block"
 
 
-class Body(Section):
-    def parse_content(self):
-        self.dedent()
-
-    def dedent(self):
-        for subnode in get_children(self, (nodes.literal_block, nodes.paragraph)):
-            content = dedent(subnode.astext())
-            subnode.replace_self(nodes.literal_block(text=content))
-
-    def validate(self):
-        self.assert_having_no_sections()
+class Body(AssetSection):
+    pass
 
 
 class DataStructures(Section):

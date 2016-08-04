@@ -268,6 +268,30 @@ class TestCase(unittest.TestCase):
         self.assertEqual(post[1][1][2][1].astext(), 'OK')
 
     @with_app(srcdir='tests/template', copy_srcdir_to_tmpdir=True)
+    def test_schema(self, app, status, warnings):
+        """
+        # GET /posts/{id}
+        + Response 200
+            + Schema
+
+                {
+                    "type": "string"
+                }
+
+        """
+        app.build()
+        print(status.getvalue(), warnings.getvalue())
+
+        blueprint = app.env.get_doctree('index')[0][1]
+
+        self.assertEqual(blueprint[0].astext(), 'GET /posts/{id}')
+
+        response = blueprint[1][0]
+        self.assertEqual(response[0].astext(), 'Response 200')
+        self.assertEqual(response[1][0].astext(), 'Schema:')
+        self.assertEqual(response[1][1].astext(), '{\n"type": "string"\n}')
+
+    @with_app(srcdir='tests/template', copy_srcdir_to_tmpdir=True)
     def test_model(self, app, status, warnings):
         """
         # Blog Posts [/posts]
