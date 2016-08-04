@@ -294,7 +294,6 @@ class TestCase(unittest.TestCase):
         self.assertEqual(model[1][1].astext(), 'Hello World!')
 
         retrieve = blueprint[2]
-        print retrieve[1][0]
         self.assertEqual(retrieve[0].astext(), 'GET /posts (Retrieve blog posts)')
         self.assertEqual(retrieve[1][0][1][1].astext(), '[Blog Posts][]')
 
