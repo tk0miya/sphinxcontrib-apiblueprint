@@ -268,6 +268,37 @@ class TestCase(unittest.TestCase):
         self.assertEqual(post[1][1][2][1].astext(), 'OK')
 
     @with_app(srcdir='tests/template', copy_srcdir_to_tmpdir=True)
+    def test_model(self, app, status, warnings):
+        """
+        # Blog Posts [/posts]
+
+        + Model (text/plain)
+            + Body
+                Hello World!
+
+        ## Retrieve blog posts [GET]
+
+        + Response 200
+
+            [Blog Posts][]
+        """
+        app.build()
+        print(status.getvalue(), warnings.getvalue())
+
+        blueprint = app.env.get_doctree('index')[0][1]
+
+        self.assertEqual(blueprint[0].astext(), 'Blog Posts')
+
+        model = blueprint[1]
+        self.assertEqual(model[0].astext(), 'Model (text/plain)')
+        self.assertEqual(model[1][1].astext(), 'Hello World!')
+
+        retrieve = blueprint[2]
+        print retrieve[1][0]
+        self.assertEqual(retrieve[0].astext(), 'GET /posts (Retrieve blog posts)')
+        self.assertEqual(retrieve[1][0][1][1].astext(), '[Blog Posts][]')
+
+    @with_app(srcdir='tests/template', copy_srcdir_to_tmpdir=True)
     def test_action(self, app, status, warnings):
         """
         # Blog Posts [/posts]

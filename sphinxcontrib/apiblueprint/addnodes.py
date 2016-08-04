@@ -148,8 +148,15 @@ class Resource(Section):
 
 
 class Model(Section):
+    def parse_title(self):
+        pass
+
     def validate(self):
-        self.assert_having_no_sections()
+        self.assert_having_only((Headers, Attributes, Body, Schema))
+        self.assert_having_at_most_one(Headers)
+        self.assert_having_at_most_one(Attributes)
+        self.assert_having_at_most_one(Body)
+        self.assert_having_at_most_one(Schema)
 
 
 class Schema(Section):
