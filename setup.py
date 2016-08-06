@@ -8,7 +8,7 @@ requires = ['Sphinx>=0.6', 'recommonmark', 'sphinxcontrib-httpdomain']
 
 setup(
     name='sphinxcontrib-apiblueprint',
-    version='0.0.1',
+    version='0.9.0',
     url='https://github.com/tk0miya/sphinxcontrib-apiblueprint',
     license='BSD',
     author='Takeshi KOMIYA',
@@ -17,7 +17,7 @@ setup(
     long_description=long_desc,
     zip_safe=False,
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Environment :: Console',
         'Framework :: Sphinx :: Extension',
         'Intended Audience :: Developers',
